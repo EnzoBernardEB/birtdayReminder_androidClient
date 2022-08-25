@@ -18,4 +18,5 @@
     <string name="title_regsitration">Registration</string>
     <string name="login_title">Login</string>
     <string name="login">Login</string>
+    <string name="not_authenticated_anymore">You are not authenticated anymore, please sign in.</string>
 </resources>

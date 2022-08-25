@@ -60,10 +60,7 @@ public class BirthdayReminderApplication extends Application {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
                     Request originalRequest = chain.request();
-                    if (originalRequest.url().encodedPath().equalsIgnoreCase("/api/auth/signin")
-                            || (originalRequest.url().encodedPath().equalsIgnoreCase("/api/auth/signup")
-                            || (originalRequest.url().encodedPath().equalsIgnoreCase("/api/auth/refreshtoken")
-                            && originalRequest.method().equalsIgnoreCase("POST")))) {
+                    if (originalRequest.url().encodedPath().startsWith("/api/auth/signin") && originalRequest.method().equalsIgnoreCase("POST")) {
                         return  chain.proceed(originalRequest);
                     }
 

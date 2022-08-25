@@ -3,6 +3,8 @@ package com.heroku.birthdayreminder.DTO.Authentication.Response;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
+import com.heroku.birthdayreminder.models.Birthdate;
 
 public class SignInResponseDTO {
 
@@ -27,6 +29,9 @@ public class SignInResponseDTO {
     @SerializedName("roles")
     @Expose
     private List<String> roles = null;
+    @SerializedName("birthdates")
+    @Expose
+    private List<BirthdateDTO> birthdates = null;
 
     public SignInResponseDTO() {
     }
@@ -41,7 +46,8 @@ public class SignInResponseDTO {
      * @param refreshToken
      * @param username
      */
-    public SignInResponseDTO(String token, String type, String refreshToken, String id, String username, String email, List<String> roles) {
+    public SignInResponseDTO(String token, String type, String refreshToken, String id, String username, String email, List<String> roles,List<BirthdateDTO> birthdates
+    ) {
         super();
         this.token = token;
         this.type = type;
@@ -50,6 +56,8 @@ public class SignInResponseDTO {
         this.username = username;
         this.email = email;
         this.roles = roles;
+        this.birthdates = birthdates;
+
     }
 
     public String getToken() {
@@ -108,4 +116,11 @@ public class SignInResponseDTO {
         this.roles = roles;
     }
 
+    public List<BirthdateDTO> getBirthdates() {
+        return birthdates;
+    }
+
+    public void setBirthdates(List<BirthdateDTO> birthdates) {
+        this.birthdates = birthdates;
+    }
 }

@@ -9,12 +9,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 import com.heroku.birthdayreminder.DTO.Authentication.Request.SignInRequestDTO;
 import com.heroku.birthdayreminder.DTO.Authentication.Response.SignInResponseDTO;
+import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
 import com.heroku.birthdayreminder.container.BirthdayReminderApplication;
 import com.heroku.birthdayreminder.databinding.ActivityLoginBinding;
 import com.heroku.birthdayreminder.models.ApiCallback;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -32,18 +39,18 @@ public class LoginActivity extends AppCompatActivity implements ApiCallback {
         super.onCreate(savedInstanceState);
         activityLoginBinding = ActivityLoginBinding.inflate(getLayoutInflater());
         View view = activityLoginBinding.getRoot();
-        setContentView(view);
+        this.setContentView(view);
 
 
         this.context = this;
-        birthdatesHttpService = ((BirthdayReminderApplication) getApplication()).getBirthdatesHttpService();
-        sharedPreferences = ((BirthdayReminderApplication) getApplication()).getSharedPreferencesApp();
+        this.birthdatesHttpService = ((BirthdayReminderApplication) getApplication()).getBirthdatesHttpService();
+        this.sharedPreferences = ((BirthdayReminderApplication) getApplication()).getSharedPreferencesApp();
 
 
-        activityLoginBinding.loginButton.setOnClickListener(v -> {
+        this.activityLoginBinding.loginButton.setOnClickListener(v -> {
             this.attemptLogin();
         });
-        setOnClickRegisterListener();
+        this.setOnClickRegisterListener();
     }
 
 
@@ -74,23 +81,34 @@ public class LoginActivity extends AppCompatActivity implements ApiCallback {
                     return;
                 }
                 if (response.code() == 200) {
-                    SignInResponseDTO signInResponseDTO = response.body();
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("access_token", signInResponseDTO.getToken());
-                    editor.putString("refresh_token", signInResponseDTO.getRefreshToken());
-                    editor.apply();
-                    startActivity(new Intent(context, MainActivity.class));
+                    saveUserAndNavigate(response);
                     showProgress(false);
+                    finish();
                 }
             }
 
             @Override
             public void onFailure(Call<SignInResponseDTO> call, Throwable t) {
-                Log.d("TAG", "onFailure: " + t.getMessage());
+                Log.d("TAGFAILLURE", "onFailure: " + t.getMessage());
                 Toast.makeText(context, "error", Toast.LENGTH_SHORT).show();
             }
         });
 
+    }
+
+    private void saveUserAndNavigate(Response<SignInResponseDTO> response) {
+        SignInResponseDTO signInResponseDTO = response.body();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("access_token", signInResponseDTO.getToken());
+        editor.putString("refresh_token", signInResponseDTO.getRefreshToken());
+        editor.putString("userId", signInResponseDTO.getId());
+
+        Gson gson = new Gson();
+        String json = gson.toJson(signInResponseDTO.getBirthdates());
+        editor.putString("birthdates",json );
+        editor.apply();
+
+        startActivity(new Intent(context, MainActivity.class));
     }
 
     private void displayError(Response<SignInResponseDTO> response) {

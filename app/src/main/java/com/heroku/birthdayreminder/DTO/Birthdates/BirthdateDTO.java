@@ -2,6 +2,8 @@ package com.heroku.birthdayreminder.DTO.Birthdates;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
+
 public class BirthdateDTO {
 
     @SerializedName("id")
@@ -9,7 +11,7 @@ public class BirthdateDTO {
     private String id;
     @SerializedName("date")
     @Expose
-    private String date;
+    private Date date;
     @SerializedName("firstname")
     @Expose
     private String firstname;
@@ -32,7 +34,7 @@ public class BirthdateDTO {
      * @param userId
      * @param lastname
      */
-    public BirthdateDTO(String id, String date, String firstname, String lastname, Object userId) {
+    public BirthdateDTO(String id, Date date, String firstname, String lastname, Object userId) {
         super();
         this.id = id;
         this.date = date;
@@ -49,11 +51,11 @@ public class BirthdateDTO {
         this.id = id;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 

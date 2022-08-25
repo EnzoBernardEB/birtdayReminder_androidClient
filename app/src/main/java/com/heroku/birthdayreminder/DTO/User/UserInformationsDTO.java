@@ -3,6 +3,7 @@ package com.heroku.birthdayreminder.DTO.User;
 
 
 
+        import java.util.ArrayList;
         import java.util.List;
         import com.google.gson.annotations.Expose;
         import com.google.gson.annotations.SerializedName;
@@ -21,10 +22,10 @@ public class UserInformationsDTO {
     private String email;
     @SerializedName("roles")
     @Expose
-    private List<RoleDTO> roles = null;
+    private ArrayList<RoleDTO> roles = null;
     @SerializedName("birthdays")
     @Expose
-    private List<BirthdateDTO> birthdays = null;
+    private ArrayList<BirthdateDTO> birthdays = null;
 
     public UserInformationsDTO() {
     }
@@ -37,7 +38,7 @@ public class UserInformationsDTO {
      * @param email
      * @param username
      */
-    public UserInformationsDTO(String id, String username, String email, List<RoleDTO> roles, List<BirthdateDTO> birthdays) {
+    public UserInformationsDTO(String id, String username, String email, ArrayList<RoleDTO> roles, ArrayList<BirthdateDTO> birthdays) {
         super();
         this.id = id;
         this.username = username;
@@ -70,19 +71,19 @@ public class UserInformationsDTO {
         this.email = email;
     }
 
-    public List<RoleDTO> getRoles() {
+    public ArrayList<RoleDTO> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<RoleDTO> roles) {
+    public void setRoles(ArrayList<RoleDTO> roles) {
         this.roles = roles;
     }
 
-    public List<BirthdateDTO> getBirthdays() {
+    public ArrayList<BirthdateDTO> getBirthdays() {
         return birthdays;
     }
 
-    public void setBirthdays(List<BirthdateDTO> birthdays) {
+    public void setBirthdays(ArrayList<BirthdateDTO> birthdays) {
         this.birthdays = birthdays;
     }
 
