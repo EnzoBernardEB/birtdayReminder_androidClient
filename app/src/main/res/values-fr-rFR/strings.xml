@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources >
+    <string name="app_name">pense-anniversaire</string>
+    <string name="action_sign_in">Se connecter</string>
+    <string name="prompt_password">Mot de passe</string>
+    <string name="action_sign_in_short">in</string>
+    <string name="prompt_username">Identifiant</string>
+    <string name="invalid_credentials">Identifiants invalides</string>
+    <string name="error_field_required">Champ obligatoire manquant</string>
+    <string name="username_already_used">Identifiant déja utilisé</string>
+    <string name="email_already_used">Email déja utilisé</string>
+    <string name="text_connected">Connecter</string>
+    <string name="text_not_connected_activity">Pas de connexion internet</string>
+    <string name="text_not_connected">Pas de connexion</string>
+    <string name="register" >S\'enregistrer</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_confirm_password">confirm password</string>
+    <string name="title_regsitration">S\'inscrire</string>
+    <string name="login_title">Se connecter</string>
+    <string name="login">Login</string>
+</resources>

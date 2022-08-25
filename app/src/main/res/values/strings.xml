@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources >
+    <string name="app_name">birthdayReminder</string>
+    <string name="action_sign_in">Sign In</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in_short">in</string>
+    <string name="prompt_username">username</string>
+    <string name="invalid_credentials">Invalid credentials</string>
+    <string name="username_already_used">Username already used</string>
+    <string name="email_already_used">Email already used</string>
+    <string name="error_field_required">Missing required field</string>
+    <string name="text_connected">Connected</string>
+    <string name="text_not_connected_activity">No internet connection</string>
+    <string name="text_not_connected">No Internet</string>
+    <string name="register" >Register</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_confirm_password">confirm password</string>
+    <string name="title_regsitration">Registration</string>
+    <string name="login_title">Login</string>
+    <string name="login">Login</string>
+</resources>
