@@ -12,16 +12,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
 import com.heroku.birthdayreminder.R;
 import com.heroku.birthdayreminder.adapter.BirthdayAdapter;
@@ -33,7 +32,6 @@ import com.heroku.birthdayreminder.models.Birthdate;
 import com.heroku.birthdayreminder.models.User;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
 
-import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -96,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d("TAG", "onCreate: erroir"+ e.getMessage());
         }
-        ArrayList<ListItem> listItems = Util.createListItems(user.birthdays);
+        ArrayList<ListItem> listItems = Util.createListItems(user.birthdays,context);
         final RecyclerView recyclerView = activityMainBinding.coordinatorRoot.findViewById(R.id.recycler_view_home);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
@@ -112,24 +110,9 @@ public class MainActivity extends AppCompatActivity {
         final View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_add_birthdate, null);
         final EditText editTextFirstName = view.findViewById(R.id.edit_text_text_first_name);
         final EditText editTextLastName = view.findViewById(R.id.edit_text_text_last_name);
-        final EditText editTextDate = view.findViewById(R.id.edit_text_text_date);
+        final DatePicker editTextDate = view.findViewById(R.id.datePicker);
 
-        editTextDate.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (!Util.isDateValid(s.toString())) {
-                    editTextDate.setError("Date incorrecte");
-                }
-            }
-        });
 
         builder.setTitle("Nouvel anniversaire ?");
         builder.setView(view);
@@ -165,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
             // TODO : Appeler la méthode qui ajoute cet anniversaire à la liste des anniversaires de cet utilisateur (comprendre ce que fait la méthode)
 
-            birthdayAdapter.setListItems(Util.createListItems(user.birthdays));
+            birthdayAdapter.setListItems(Util.createListItems(user.birthdays,context));
 
             // Appel API POST /users/id/birthdays
             Map<String, String> map = new HashMap<>();

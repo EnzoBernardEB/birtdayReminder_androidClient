@@ -15,6 +15,7 @@ import com.heroku.birthdayreminder.R;
 import com.heroku.birthdayreminder.adapter.BirthdayItem;
 import com.heroku.birthdayreminder.adapter.ListItem;
 import com.heroku.birthdayreminder.adapter.MonthItem;
+import com.heroku.birthdayreminder.container.BirthdayReminderApplication;
 import com.heroku.birthdayreminder.models.Birthdate;
 import com.heroku.birthdayreminder.models.User;
 import org.json.JSONException;
@@ -133,10 +134,10 @@ public class Util {
         return FORMAT_INPUT.parse(str);
     }
 
-    public static ArrayList<ListItem> createListItems(ArrayList<Birthdate> birthdays) {
+    public static ArrayList<ListItem> createListItems(ArrayList<Birthdate> birthdays, Context context) {
 
         ArrayList<ListItem> result = new ArrayList<>();
-        String[] months = Util.getMonths();
+        String[] months = Util.getMonths(context);
 
         ArrayList<MonthItem> monthItems = Util.convertMonthItem(months);
         ArrayList<BirthdayItem> birthdayItems = Util.convertBirthdateItem(birthdays);
@@ -153,13 +154,7 @@ public class Util {
                 if (birthdatesOfMonth.size() == 0)
                     continue;
 
-                Optional<ListItem> month = result
-                        .stream()
-                        .filter(listItem -> listItem.getType() == 0 &&
-                                ((MonthItem) listItem).number == ((BirthdayItem) birthdatesOfMonth.get(0)).birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue()).findFirst();
-                int index = result.indexOf(month.get());
-
-
+                int index = Util.getIndexMonth(result,birthdatesOfMonth);
                 birthdatesOfMonth.sort((d1, d2) -> comparator.compare(((BirthdayItem) d1).birthday, ((BirthdayItem) d2).birthday));
                 result.addAll(index + 1, birthdatesOfMonth);
                 birthdayItems.removeAll(birthdatesOfMonth);
@@ -183,14 +178,22 @@ public class Util {
 
         return birthdayItems;
     }
-    private static ArrayList<BirthdayItem> getBirthdatesOfSpecificMonth(ArrayList<BirthdayItem> birthdayItems,ArrayList<MonthItem> monthItems, int index) {
-        birthdayItems
+
+    private static int getIndexMonth(ArrayList<ListItem> result, ArrayList<BirthdayItem> birthdatesOfMonth) {
+        Optional<ListItem> month = result
                 .stream()
-                .filter(listItem -> listItem.getType() == 1 &&
-                        ((BirthdayItem) listItem).birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue() == monthItems.get(index).number)
+                .filter(listItem -> listItem.getType() == 0 &&
+                        ((MonthItem) listItem).number == ((BirthdayItem) birthdatesOfMonth.get(0)).birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue()).findFirst();
+
+        return result.indexOf(month.get());
+    }
+    private static ArrayList<BirthdayItem> getBirthdatesOfSpecificMonth(ArrayList<BirthdayItem> birthdayItems,ArrayList<MonthItem> monthItems, int index) {
+        ArrayList<BirthdayItem> birthdatesOfMonth = birthdayItems
+                .stream()
+                .filter(birthdayItem -> birthdayItem.birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue() == monthItems.get(index).number)
                 .collect(toCollection(ArrayList::new));
 
-        return birthdayItems;
+        return birthdatesOfMonth;
     }
 
     private static ArrayList<MonthItem> convertMonthItem(String[] months) {
@@ -203,20 +206,20 @@ public class Util {
         return monthItems;
     }
 
-    private static String[] getMonths() {
+    private static String[] getMonths(Context context) {
         String[] months = {
-                Resources.getSystem().getString(R.string.January),
-                Resources.getSystem().getString(R.string.February),
-                Resources.getSystem().getString(R.string.March),
-                Resources.getSystem().getString(R.string.April),
-                Resources.getSystem().getString(R.string.May),
-                Resources.getSystem().getString(R.string.June),
-                Resources.getSystem().getString(R.string.July),
-                Resources.getSystem().getString(R.string.August),
-                Resources.getSystem().getString(R.string.September),
-                Resources.getSystem().getString(R.string.October),
-                Resources.getSystem().getString(R.string.November),
-                Resources.getSystem().getString(R.string.December),
+                context.getString(R.string.January),
+                context.getString(R.string.February),
+                context.getString(R.string.March),
+                context.getString(R.string.April),
+                context.getString(R.string.May),
+                context.getString(R.string.June),
+                context.getString(R.string.July),
+                context.getString(R.string.August),
+                context.getString(R.string.September),
+                context.getString(R.string.October),
+                context.getString(R.string.November),
+                context.getString(R.string.December),
         };
 
         return months;
