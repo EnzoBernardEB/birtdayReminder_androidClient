@@ -1,5 +1,10 @@
 package com.heroku.birthdayreminder.activities;
 
+import static com.heroku.birthdayreminder.utils.Util.ACCESS_TOKEN;
+import static com.heroku.birthdayreminder.utils.Util.BIRTHDATES;
+import static com.heroku.birthdayreminder.utils.Util.REFRESH_TOKEN;
+import static com.heroku.birthdayreminder.utils.Util.USER_APP;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,20 +18,20 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.heroku.birthdayreminder.DTO.Authentication.Request.SignInRequestDTO;
 import com.heroku.birthdayreminder.DTO.Authentication.Response.SignInResponseDTO;
-import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
 import com.heroku.birthdayreminder.container.BirthdayReminderApplication;
 import com.heroku.birthdayreminder.databinding.ActivityLoginBinding;
-import com.heroku.birthdayreminder.models.ApiCallback;
+import com.heroku.birthdayreminder.models.Birthdate;
+import com.heroku.birthdayreminder.models.User;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
+import com.heroku.birthdayreminder.utils.Util;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity implements ApiCallback {
+public class LoginActivity extends AppCompatActivity {
     private ActivityLoginBinding activityLoginBinding;
     private Context context;
     private BirthdatesHttpService birthdatesHttpService;
@@ -91,6 +96,7 @@ public class LoginActivity extends AppCompatActivity implements ApiCallback {
             public void onFailure(Call<SignInResponseDTO> call, Throwable t) {
                 Log.d("TAGFAILLURE", "onFailure: " + t.getMessage());
                 Toast.makeText(context, "error", Toast.LENGTH_SHORT).show();
+                showProgress(false);
             }
         });
 
@@ -98,17 +104,34 @@ public class LoginActivity extends AppCompatActivity implements ApiCallback {
 
     private void saveUserAndNavigate(Response<SignInResponseDTO> response) {
         SignInResponseDTO signInResponseDTO = response.body();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("access_token", signInResponseDTO.getToken());
-        editor.putString("refresh_token", signInResponseDTO.getRefreshToken());
-        editor.putString("userId", signInResponseDTO.getId());
-
+        Util.setAccessToken(sharedPreferences,signInResponseDTO.getToken());
+        Util.setRefreshToken(sharedPreferences,signInResponseDTO.getRefreshToken());
+        Util.setUserId(sharedPreferences,signInResponseDTO.getId());
         Gson gson = new Gson();
-        String json = gson.toJson(signInResponseDTO.getBirthdates());
-        editor.putString("birthdates",json );
-        editor.apply();
+
+        User user = getUserFromResponse(signInResponseDTO);
+        String jsonUser = gson.toJson(user);
+        String jsonBirthdates = gson.toJson(signInResponseDTO.getBirthdates());
+
+        Util.setBirthdates(sharedPreferences,jsonBirthdates);
+        Util.setUser(sharedPreferences,jsonUser);
+
 
         startActivity(new Intent(context, MainActivity.class));
+    }
+
+    private User getUserFromResponse(SignInResponseDTO signInResponseDTO) {
+        ArrayList<Birthdate> birthdates = new ArrayList<>();
+        for (int i = 0; i < signInResponseDTO.getBirthdates().size(); i++) {
+            Birthdate birthdate = new Birthdate(
+                    signInResponseDTO.getBirthdates().get(i).getDate(),
+                    signInResponseDTO.getBirthdates().get(i).getFirstname(),
+                    signInResponseDTO.getBirthdates().get(i).getLastname());
+            birthdates.add(birthdate);
+        }
+        User user = new User(signInResponseDTO.getUsername(),signInResponseDTO.getEmail(),birthdates);
+
+        return user;
     }
 
     private void displayError(Response<SignInResponseDTO> response) {
@@ -132,17 +155,5 @@ public class LoginActivity extends AppCompatActivity implements ApiCallback {
 
     private void showProgress(boolean visible) {
         activityLoginBinding.loading.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    @Override
-    public void fail(final String json) {
-        activityLoginBinding.loading.setVisibility(View.INVISIBLE);
-
-    }
-
-    @Override
-    public void success(final String json) {
-
-
     }
 }

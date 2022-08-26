@@ -1,5 +1,9 @@
 package com.heroku.birthdayreminder.activities;
 
+
+import static com.heroku.birthdayreminder.utils.Util.ACCESS_TOKEN;
+import static com.heroku.birthdayreminder.utils.Util.REFRESH_TOKEN;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -37,6 +41,7 @@ public class SplashScreenActivity extends AppCompatActivity {
     private BirthdatesHttpService birthdatesHttpService;
     private SharedPreferences sharedPreferences;
     private Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -47,8 +52,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 
 //        checkNetworkAndCreate();
         try {
-            accessToken = sharedPreferences.getString("access_token",null);
-            refreshToken = sharedPreferences.getString("refresh_token",null);
+            accessToken = sharedPreferences.getString(ACCESS_TOKEN,null);
+            refreshToken = sharedPreferences.getString(REFRESH_TOKEN,null);
             Log.d("TAG", "IS a TOKEN ?: "+accessToken);
 
             if(!isTokenValid()){
@@ -104,12 +109,10 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private void saveTokens(Response<TokenRefreshResponseDTO> response) {
         TokenRefreshResponseDTO tokenRefreshResponseDTO = response.body();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Util.setAccessToken(sharedPreferences,tokenRefreshResponseDTO.getAccessToken());
+        Util.setRefreshToken(sharedPreferences,tokenRefreshResponseDTO.getRefreshToken());
         Log.d("TAG", "onResponse: refresh "+tokenRefreshResponseDTO.getRefreshToken());
         Log.d("TAG", "onResponse:  new token"+tokenRefreshResponseDTO.getAccessToken());
-        editor.putString("access_token", tokenRefreshResponseDTO.getAccessToken());
-        editor.putString("refresh_token", tokenRefreshResponseDTO.getRefreshToken());
-        editor.apply();
     }
 
 //    private void checkNetworkAndCreate() {

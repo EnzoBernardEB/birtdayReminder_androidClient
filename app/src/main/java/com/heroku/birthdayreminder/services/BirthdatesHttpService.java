@@ -6,10 +6,16 @@ import com.heroku.birthdayreminder.DTO.Authentication.Request.TokenRefreshReques
 import com.heroku.birthdayreminder.DTO.Authentication.Response.SignInResponseDTO;
 import com.heroku.birthdayreminder.DTO.Authentication.Response.SignUpResponseDTO;
 import com.heroku.birthdayreminder.DTO.Authentication.Response.TokenRefreshResponseDTO;
+import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
+
+import java.util.List;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface BirthdatesHttpService {
 
@@ -21,4 +27,8 @@ public interface BirthdatesHttpService {
 
     @POST("auth/refreshtoken")
     Call<TokenRefreshResponseDTO>refreshToken(@Body TokenRefreshRequestDTO tokenRefreshRequestDTO);
+
+    @GET("user/{userId}/birthdates")
+    Call<List<BirthdateDTO>> getUserBirthdates(@Path("userId")UUID userId);
+
 }

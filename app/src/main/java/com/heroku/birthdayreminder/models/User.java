@@ -48,6 +48,12 @@ public class User {
         }
     }
 
+    public User(String username, String email, ArrayList<Birthdate> birthdays) {
+        this.username = username;
+        this.email = email;
+        this.birthdays = birthdays;
+    }
+
     public void addBirthday(SharedPreferences sharedPreferences, Birthdate birthday) {
         birthdays.add(birthday);
 

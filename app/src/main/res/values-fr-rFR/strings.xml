@@ -18,4 +18,17 @@
     <string name="title_regsitration">S\'inscrire</string>
     <string name="login_title">Se connecter</string>
     <string name="login">Login</string>
+    <string name="not_authenticated_anymore">Vous n\'etes plus authentifié, veuillez vous reconnecter.</string>
+    <string name="January">Janvier</string>
+    <string name="February">Février</string>
+    <string name="March">Mars</string>
+    <string name="April">Avril</string>
+    <string name="May">Mai</string>
+    <string name="June">Juin</string>
+    <string name="July">Juillet</string>
+    <string name="August">Aout</string>
+    <string name="September">Septembre</string>
+    <string name="October">Octobre</string>
+    <string name="November">Novembre</string>
+    <string name="December">Decembre</string>
 </resources>

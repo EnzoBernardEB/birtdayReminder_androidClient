@@ -19,4 +19,16 @@
     <string name="login_title">Login</string>
     <string name="login">Login</string>
     <string name="not_authenticated_anymore">You are not authenticated anymore, please sign in.</string>
+    <string name="January">January</string>
+    <string name="February">February</string>
+    <string name="March">March</string>
+    <string name="April">April</string>
+    <string name="May">May</string>
+    <string name="June">June</string>
+    <string name="July">July</string>
+    <string name="August">August</string>
+    <string name="September">September</string>
+    <string name="October">October</string>
+    <string name="November">November</string>
+    <string name="December">December</string>
 </resources>
