@@ -25,6 +25,7 @@ import com.heroku.birthdayreminder.models.User;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
 import com.heroku.birthdayreminder.utils.Util;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -86,7 +87,11 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
                 if (response.code() == 200) {
-                    saveUserAndNavigate(response);
+                    try {
+                        saveUserAndNavigate(response);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                     showProgress(false);
                     finish();
                 }
@@ -94,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SignInResponseDTO> call, Throwable t) {
-                Log.d("TAGFAILLURE", "onFailure: " + t.getMessage());
+                Log.d("TAG", "ERROR LOGIN: " + t.getMessage());
                 Toast.makeText(context, "error", Toast.LENGTH_SHORT).show();
                 showProgress(false);
             }
@@ -102,12 +107,12 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void saveUserAndNavigate(Response<SignInResponseDTO> response) {
+    private void saveUserAndNavigate(Response<SignInResponseDTO> response) throws ParseException {
         SignInResponseDTO signInResponseDTO = response.body();
         Util.setAccessToken(sharedPreferences,signInResponseDTO.getToken());
         Util.setRefreshToken(sharedPreferences,signInResponseDTO.getRefreshToken());
         Util.setUserId(sharedPreferences,signInResponseDTO.getId());
-        Gson gson = new Gson();
+        Gson gson = ((BirthdayReminderApplication)getApplication()).getGsonWithLocalDateSerializer();
 
         User user = getUserFromResponse(signInResponseDTO);
         String jsonUser = gson.toJson(user);
@@ -120,7 +125,7 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(new Intent(context, MainActivity.class));
     }
 
-    private User getUserFromResponse(SignInResponseDTO signInResponseDTO) {
+    private User getUserFromResponse(SignInResponseDTO signInResponseDTO) throws ParseException {
         ArrayList<Birthdate> birthdates = new ArrayList<>();
         for (int i = 0; i < signInResponseDTO.getBirthdates().size(); i++) {
             Birthdate birthdate = new Birthdate(

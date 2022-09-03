@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources >
+<resources>
     <string name="app_name">birthdayReminder</string>
     <string name="action_sign_in">Sign In</string>
     <string name="prompt_password">Password</string>
@@ -12,7 +12,7 @@
     <string name="text_connected">Connected</string>
     <string name="text_not_connected_activity">No internet connection</string>
     <string name="text_not_connected">No Internet</string>
-    <string name="register" >Register</string>
+    <string name="register">Register</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_confirm_password">confirm password</string>
     <string name="title_regsitration">Registration</string>
@@ -31,4 +31,9 @@
     <string name="October">October</string>
     <string name="November">November</string>
     <string name="December">December</string>
+    <string name="add_birthdate">Add a birthdate</string>
+    <string name="firstname_input">Firstname</string>
+    <string name="lastname_input">Lastname</string>
+    <string name="add">ADD</string>
+    <string name="dateFormat">YYYY-MM-DD</string>
 </resources>

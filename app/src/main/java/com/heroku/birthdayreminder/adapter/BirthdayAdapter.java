@@ -12,6 +12,7 @@ import com.heroku.birthdayreminder.R;
 import com.heroku.birthdayreminder.models.Birthdate;
 import com.heroku.birthdayreminder.utils.Util;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class BirthdayAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -57,9 +58,9 @@ public class BirthdayAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ListItem.TYPE_BIRTHDAY:
                 Birthdate birthday = ((BirthdayItem) listItems.get(position)).birthday;
                 BirthDayViewHolder birthDayViewHolder = (BirthDayViewHolder) viewHolder;
-                birthDayViewHolder.mTextViewName.setText(birthday.firstname + " " + birthday.lastname);
-                birthDayViewHolder.mTextViewDate.setText(birthday.date.getDate()+"");
-                birthDayViewHolder.mTextViewAge.setText(Util.getAge(birthday.date) + " ans");
+                birthDayViewHolder.mTextViewName.setText(Util.capitalize(birthday.firstname) + " " + birthday.lastname.toUpperCase());
+                birthDayViewHolder.mTextViewDate.setText(Util.printNumberPretty(birthday.date.getDayOfMonth()));
+                birthDayViewHolder.mTextViewAge.setText(Util.calculateAge(birthday.date, LocalDate.now()) + " ans");
                 break;
             case ListItem.TYPE_MONTH:
                 MonthItem monthItem = (MonthItem) listItems.get(position);

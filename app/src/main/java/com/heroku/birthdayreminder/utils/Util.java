@@ -3,38 +3,57 @@ package com.heroku.birthdayreminder.utils;
 import static java.util.stream.Collectors.toCollection;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.heroku.birthdayreminder.DTO.Authentication.Request.TokenRefreshRequestDTO;
+import com.heroku.birthdayreminder.DTO.Authentication.Response.TokenRefreshResponseDTO;
 import com.heroku.birthdayreminder.R;
+import com.heroku.birthdayreminder.activities.LoginActivity;
+import com.heroku.birthdayreminder.activities.MainActivity;
+import com.heroku.birthdayreminder.activities.SplashScreenActivity;
 import com.heroku.birthdayreminder.adapter.BirthdayItem;
 import com.heroku.birthdayreminder.adapter.ListItem;
 import com.heroku.birthdayreminder.adapter.MonthItem;
 import com.heroku.birthdayreminder.container.BirthdayReminderApplication;
 import com.heroku.birthdayreminder.models.Birthdate;
 import com.heroku.birthdayreminder.models.User;
+import com.heroku.birthdayreminder.services.BirthdatesHttpService;
+
 import org.json.JSONException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class Util {
 
     public static final String USER_APP = "user";
     public static final String BIRTHDATES = "birthdates";
     public static final String USER_ID = "userId";
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private static final SimpleDateFormat FORMAT_INPUT = new SimpleDateFormat("dd/MM/yyyy");
     public static final String ACCESS_TOKEN = "access_token";
     public static final String REFRESH_TOKEN = "refresh_token";
@@ -59,13 +78,25 @@ public class Util {
         sharedPreferences.edit().putString(USER_ID, json).apply();
     }
 
-    public static User getUser(SharedPreferences sharedPreferences) throws JSONException, ParseException {
-        Gson gson = new Gson();
+    public static User getUser(SharedPreferences sharedPreferences, Gson gson) {
+
         String jsonUser = sharedPreferences.getString(USER_APP, null);
         Type listTypeUser = new TypeToken<User>() {
         }.getType();
         User result = gson.fromJson(jsonUser, listTypeUser);
         return result;
+    }
+
+    public static String getRefreshToken(SharedPreferences sharedPreferences) {
+        String refreshToken = sharedPreferences.getString(REFRESH_TOKEN, null);
+
+        return refreshToken;
+    }
+
+    public static String getAccessToken(SharedPreferences sharedPreferences) {
+        String accesToken = sharedPreferences.getString(ACCESS_TOKEN, null);
+
+        return accesToken;
     }
 
     public static UUID getUserUUID(SharedPreferences sharedPreferences) {
@@ -76,17 +107,77 @@ public class Util {
     }
 
 
-    public static Date initDateFromDB(String str) throws ParseException {
-        return FORMAT.parse(str);
+    public static LocalDate initDateFromDB(String str) throws ParseException {
+        return LocalDate.parse(str);
+    }
+    public static LocalDate convertToLocalDate(Date dateToConvert) {
+        return  Instant.ofEpochMilli(dateToConvert.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+    public static Date convertToDate(LocalDate dateToConvert) {
+        return java.util.Date.from(dateToConvert.atStartOfDay()
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
     }
 
-    public static String printDate(Date date) {
-        return FORMAT.format(date);
+    public static String printDate(LocalDate date) {
+        return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
     }
 
-    public static long getAge(Date date) {
-        long diff = System.currentTimeMillis() - date.getTime();
-        return diff / 31622400000l;
+    public static int calculateAge(LocalDate birthDate, LocalDate currentDate) {
+        if ((birthDate != null) && (currentDate != null)) {
+            return Period.between(birthDate, currentDate).getYears();
+        } else {
+            return 0;
+        }
+    }
+
+    public static String printNumberPretty(int number) {
+        if(number >=10)
+            return String.valueOf(number);
+        return "0"+String.valueOf(number);
+    }
+
+    public static void silentAuthentication(BirthdatesHttpService birthdatesHttpService,SharedPreferences sharedPreferences, Context context) {
+        String refreshToken = Util.getRefreshToken(sharedPreferences);
+        TokenRefreshRequestDTO tokenRefreshRequestDTO = new TokenRefreshRequestDTO(refreshToken);
+
+        birthdatesHttpService.refreshToken(tokenRefreshRequestDTO).enqueue(new Callback<TokenRefreshResponseDTO>() {
+            @Override
+            public void onResponse(Call<TokenRefreshResponseDTO> call, Response<TokenRefreshResponseDTO> response) {
+                if(response.code() == 403) {
+                    Log.d("TAG", "onResponse: REFRESH TOKEN UNVALID SILENT AUTH  "+refreshToken);
+                    Intent intent  = new Intent(context, LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                    Toast.makeText(context,context.getString(R.string.not_authenticated_anymore), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Log.d("TAG", "onResponse: GETTING NEW TOKEN" + response.body().getAccessToken());
+                Log.d("TAG", "onResponse: GETTING NEW TOKEN" + response.body().getRefreshToken());
+                Util.saveTokens(response,sharedPreferences);
+            }
+
+            @Override
+            public void onFailure(Call<TokenRefreshResponseDTO> call, Throwable t) {
+                Log.d("TAG", "onFailure: "+t.getMessage());
+            }
+        });
+    }
+    public static void navigateToMain(Context context) {
+        Boolean isSilentAuthenticated = true;
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("isSilentAuthenticated", isSilentAuthenticated);
+        context.startActivity(intent);
+    }
+
+    public static void saveTokens(Response<TokenRefreshResponseDTO> response, SharedPreferences sharedPreferences) {
+        TokenRefreshResponseDTO tokenRefreshResponseDTO = response.body();
+        Util.setAccessToken(sharedPreferences,tokenRefreshResponseDTO.getAccessToken());
+        Util.setRefreshToken(sharedPreferences,tokenRefreshResponseDTO.getRefreshToken());
+        Log.d("TAG", "WRITTE NEW refresh "+tokenRefreshResponseDTO.getRefreshToken());
+        Log.d("TAG", "WRITTE NEW   new token"+tokenRefreshResponseDTO.getAccessToken());
     }
 
     public static boolean isUserNameValid(String userName) {
@@ -144,6 +235,8 @@ public class Util {
         ArrayList<BirthdayItem> sortedBirthdates = new ArrayList<>();
 
         result.addAll(monthItems);
+        if(birthdays.isEmpty())
+            return result;
         sortedBirthdates.add(birthdayItems.get(0));
         Comparator comparator = new Birthdate.CustomComparator();
 
@@ -183,14 +276,14 @@ public class Util {
         Optional<ListItem> month = result
                 .stream()
                 .filter(listItem -> listItem.getType() == 0 &&
-                        ((MonthItem) listItem).number == ((BirthdayItem) birthdatesOfMonth.get(0)).birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue()).findFirst();
+                        ((MonthItem) listItem).number == ((BirthdayItem) birthdatesOfMonth.get(0)).birthday.date.getMonthValue()).findFirst();
 
         return result.indexOf(month.get());
     }
     private static ArrayList<BirthdayItem> getBirthdatesOfSpecificMonth(ArrayList<BirthdayItem> birthdayItems,ArrayList<MonthItem> monthItems, int index) {
         ArrayList<BirthdayItem> birthdatesOfMonth = birthdayItems
                 .stream()
-                .filter(birthdayItem -> birthdayItem.birthday.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue() == monthItems.get(index).number)
+                .filter(birthdayItem -> birthdayItem.birthday.date.getMonthValue() == monthItems.get(index).number)
                 .collect(toCollection(ArrayList::new));
 
         return birthdatesOfMonth;

@@ -31,4 +31,13 @@
     <style name="customfontstyle" parent="@android:style/TextAppearance.Small">
         <item name="android:fontFamily">@font/raleway</item>
     </style>
+
+    <style name="SplashScreenTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="SplashScreenTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="SplashScreenTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

@@ -37,7 +37,7 @@ import retrofit2.Response;
 public class SplashScreenActivity extends AppCompatActivity {
     private String accessToken;
     private String refreshToken;
-    private Boolean isAuthenticate;
+    private Boolean isSilentAuthenticated;
     private BirthdatesHttpService birthdatesHttpService;
     private SharedPreferences sharedPreferences;
     private Context context;
@@ -49,12 +49,12 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         this.sharedPreferences= ((BirthdayReminderApplication) getApplication()).getSharedPreferencesApp();
         this.birthdatesHttpService = ((BirthdayReminderApplication) getApplication()).getBirthdatesHttpService();
+        this.context = this;
 
 //        checkNetworkAndCreate();
         try {
-            accessToken = sharedPreferences.getString(ACCESS_TOKEN,null);
-            refreshToken = sharedPreferences.getString(REFRESH_TOKEN,null);
-            Log.d("TAG", "IS a TOKEN ?: "+accessToken);
+            accessToken = Util.getAccessToken(sharedPreferences);
+            refreshToken = Util.getRefreshToken(sharedPreferences);
 
             if(!isTokenValid()){
                 TokenRefreshRequestDTO tokenRefreshRequestDTO = new TokenRefreshRequestDTO(refreshToken);
@@ -62,29 +62,24 @@ public class SplashScreenActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<TokenRefreshResponseDTO> call, Response<TokenRefreshResponseDTO> response) {
                         if(response.code() == 403) {
-                            Log.d("TAG", "onResponse: REFRESH TOKEN UNVALID");
                             startActivity(new Intent(context, LoginActivity.class));
                             Toast.makeText(context,getString(R.string.not_authenticated_anymore), Toast.LENGTH_LONG).show();
                             finish();
                         }
-                        Log.d("TAG", "onResponse: GETTING NEW TOKEN");
-                        saveTokens(response);
-                        navigateToMain();
+                        Util.silentAuthentication(birthdatesHttpService,sharedPreferences,context);
+                        Util.navigateToMain(context);
                         finish();
                     }
 
                     @Override
                     public void onFailure(Call<TokenRefreshResponseDTO> call, Throwable t) {
-                        Log.d("TAG", "onFailure: "+t.getMessage());
                     }
                 });
             } else {
-                Log.d("TAG", "onResponse: TOKEN STILL VALID");
-                navigateToMain();
+                Util.navigateToMain(context);
                 finish();
             }
         }catch (Exception e) {
-            Log.d("TAG", "onResponse: NO ACCESS TOKEN");
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
@@ -95,25 +90,13 @@ public class SplashScreenActivity extends AppCompatActivity {
         Date expirationDate = jwt.getExpiresAt();
         LocalDate jwtDate = Instant.ofEpochMilli(expirationDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
         boolean JWTIsExpired = LocalDate.now().isAfter(jwtDate);
-        Log.d("TAG", "isTokenValid: "+ JWTIsExpired);
         return JWTIsExpired;
     }
 
 
-    private void navigateToMain() {
-        isAuthenticate = true;
-        Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
-        intent.putExtra("isAuthenticate", isAuthenticate);
-        startActivity(intent);
-    }
 
-    private void saveTokens(Response<TokenRefreshResponseDTO> response) {
-        TokenRefreshResponseDTO tokenRefreshResponseDTO = response.body();
-        Util.setAccessToken(sharedPreferences,tokenRefreshResponseDTO.getAccessToken());
-        Util.setRefreshToken(sharedPreferences,tokenRefreshResponseDTO.getRefreshToken());
-        Log.d("TAG", "onResponse: refresh "+tokenRefreshResponseDTO.getRefreshToken());
-        Log.d("TAG", "onResponse:  new token"+tokenRefreshResponseDTO.getAccessToken());
-    }
+
+
 
 //    private void checkNetworkAndCreate() {
 //        this.setVisibility(Util.isActiveNetwork(context));

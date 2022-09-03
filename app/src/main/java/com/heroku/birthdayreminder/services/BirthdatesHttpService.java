@@ -28,7 +28,10 @@ public interface BirthdatesHttpService {
     @POST("auth/refreshtoken")
     Call<TokenRefreshResponseDTO>refreshToken(@Body TokenRefreshRequestDTO tokenRefreshRequestDTO);
 
-    @GET("user/{userId}/birthdates")
+    @POST("users/birthdates")
+    Call<BirthdateDTO>addBirthdate(@Body BirthdateDTO birthdateDTO);
+
+    @GET("users/{userId}/birthdates")
     Call<List<BirthdateDTO>> getUserBirthdates(@Path("userId")UUID userId);
 
 }

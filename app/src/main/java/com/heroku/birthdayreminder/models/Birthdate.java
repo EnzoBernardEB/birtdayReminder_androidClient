@@ -6,13 +6,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Date;
 
 
 public class Birthdate {
 
-    public Date date;
+    public LocalDate date;
     public String firstname;
     public String lastname;
 
@@ -29,7 +30,7 @@ public class Birthdate {
         lastname = jsonObject.getString("lastName");
     }
 
-    public Birthdate(Date date, String firstname, String lastname) {
+    public Birthdate(LocalDate date, String firstname, String lastname) {
         this.date = date;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -51,12 +52,12 @@ public class Birthdate {
         @Override
         public int compare(Birthdate birthday1, Birthdate birthday2) {
 
-            if (birthday1.date.getMonth() > birthday2.date.getMonth())
+            if (birthday1.date.getMonthValue() > birthday2.date.getMonthValue())
                 return 1;
             else if (birthday1.date.getMonth() == birthday2.date.getMonth()) {
-                if (birthday1.date.getDate() > birthday2.date.getDate())
+                if (birthday1.date.getDayOfMonth() > birthday2.date.getDayOfMonth())
                     return 1;
-                else if (birthday1.date.getDate() == birthday2.date.getDate())
+                else if (birthday1.date.getDayOfMonth() == birthday2.date.getDayOfMonth())
                     return 0;
                 else return -1;
             } else

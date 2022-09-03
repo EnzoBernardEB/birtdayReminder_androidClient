@@ -31,4 +31,9 @@
     <string name="October">Octobre</string>
     <string name="November">Novembre</string>
     <string name="December">Decembre</string>
+    <string name="add_birthdate">Ajouter un nouvel anniversaire</string>
+    <string name="firstname_input">Prénom</string>
+    <string name="lastname_input">Nom</string>
+    <string name="add">ADD</string>
+    <string name="dateFormat">dd-MMM-yyyy</string>
 </resources>
