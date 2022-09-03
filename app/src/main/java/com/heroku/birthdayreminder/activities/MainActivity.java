@@ -2,8 +2,10 @@ package com.heroku.birthdayreminder.activities;
 
 import static com.heroku.birthdayreminder.utils.Util.USER_APP;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,6 +13,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -39,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BirthdayAdapter birthdayAdapter;
     private User user;
+    private ArrayList<ListItem> listItems = new ArrayList<>();
     private ArrayList<Birthdate> birthdates = new ArrayList<>();
 
     @Override
@@ -88,15 +94,11 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("TAG", "onFailure: "+t.getMessage());
                 }
             });
-        } else {
-
         }
         this.user = Util.getUser(sharedPreferences,this.gson);
-        this.birthdates = this.user.birthdays;
-
-        ArrayList<ListItem> listItems = new ArrayList<>();
+        this.birthdates = Util.getBirthdates(sharedPreferences,this.gson);
         if(user != null) {
-             listItems = Util.createListItems(user.birthdays,context);
+             this.listItems = Util.createListItems(this.birthdates,context);
         }
 
         final RecyclerView recyclerView = activityMainBinding.coordinatorRoot.findViewById(R.id.recycler_view_home);
@@ -109,11 +111,105 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(context, BirthdateActionActivity.class));
             }
         });
+
+        ItemTouchHelper.SimpleCallback touchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            private final ColorDrawable background = new ColorDrawable(getResources().getColor(R.color.colorPrimaryBackground));
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public int getSwipeDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                if(viewHolder instanceof BirthdayAdapter.MonthViewHolder)
+                    return 0;
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                final int position = viewHolder.getAdapterPosition();
+                if (direction == ItemTouchHelper.LEFT && viewHolder instanceof BirthdayAdapter.BirthDayViewHolder) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("Are you sure to delete?");
+                    builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            UUID id = ((BirthdayAdapter.BirthDayViewHolder)viewHolder).birthdateId;
+                            birthdatesHttpService.deleteBirthdate(id).enqueue(new Callback<Void>() {
+                                @Override
+                                public void onResponse(Call<Void> call, Response<Void> response) {
+                                    Toast.makeText(context,"The birhtdate has been deleted", Toast.LENGTH_SHORT).show();
+                                    refreshBirthdatesList();
+                                }
+
+                                @Override
+                                public void onFailure(Call<Void> call, Throwable t) {
+                                    Toast.makeText(context,"An error has occured. Try again", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            return;
+                        }
+                    }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.d("TAG", "onClick: cancel");
+                            return;
+                        }
+                    }).show();
+                } else if (direction == ItemTouchHelper.RIGHT && viewHolder instanceof BirthdayAdapter.BirthDayViewHolder){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("Do you want to edit this birthdate ?");
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Birthdate birthdateToEdit = ((BirthdayAdapter.BirthDayViewHolder) viewHolder).birthdate;
+                            Intent intent = new Intent(context,BirthdateActionActivity.class);
+                            intent.putExtra("birthdateToEdit", birthdateToEdit);
+                            startActivity(intent);
+                            finish();
+                        }
+                    }).setNegativeButton("Nope", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            return;
+                        }
+                    }).show();
+
+
+                }
+                birthdayAdapter.notifyItemChanged(position);
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                View itemView = viewHolder.itemView;
+
+                if (dX > 0) {
+                    background.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + ((int) dX), itemView.getBottom());
+                } else if (dX < 0) {
+                    background.setBounds(itemView.getRight() + ((int) dX), itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                } else {
+                    background.setBounds(0, 0, 0, 0);
+                }
+
+                background.draw(c);
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(touchHelperCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        refreshBirthdatesList();
+    }
+
+    private void refreshBirthdatesList() {
         birthdatesHttpService.getUserBirthdates(Util.getUserUUID(sharedPreferences)).enqueue(new Callback<List<BirthdateDTO>>() {
             @Override
             public void onResponse(Call<List<BirthdateDTO>> call, Response<List<BirthdateDTO>> response) {

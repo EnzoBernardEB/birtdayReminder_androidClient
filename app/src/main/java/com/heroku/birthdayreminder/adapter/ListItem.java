@@ -6,5 +6,6 @@ public abstract class ListItem {
     public static final int TYPE_BIRTHDAY = 1;
 
     abstract public int getType();
+
 }
 

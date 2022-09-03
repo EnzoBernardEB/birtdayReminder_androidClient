@@ -16,6 +16,7 @@ import com.heroku.birthdayreminder.DTO.Birthdates.BirthdateDTO;
 import com.heroku.birthdayreminder.R;
 import com.heroku.birthdayreminder.container.BirthdayReminderApplication;
 import com.heroku.birthdayreminder.databinding.ActivityBirthdateActionBinding;
+import com.heroku.birthdayreminder.models.Birthdate;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
 import com.heroku.birthdayreminder.utils.Util;
 
@@ -49,23 +50,56 @@ public class BirthdateActionActivity extends AppCompatActivity {
         activityBirthdateActionBinding = ActivityBirthdateActionBinding.inflate(getLayoutInflater());
         setContentView(activityBirthdateActionBinding.getRoot());
 
-        this.configDatePicker();
-        activityBirthdateActionBinding.buttonBirthdateAction.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                BirthdateDTO birthdateDTOToAdd = createBirthdateDTOToAdd();
-                birthdatesHttpService.addBirthdate(birthdateDTOToAdd).enqueue(callBackAddBirthdate());
-            }
-        });
+        if(getIntent().getExtras() != null) {
+            Birthdate birthdate = (Birthdate) getIntent().getSerializableExtra("birthdateToEdit");
+            activityBirthdateActionBinding.titleBirthdateAction.setText(R.string.edit_birthdate);
+            activityBirthdateActionBinding.editTextTextFirstName.setText(birthdate.firstname);
+            activityBirthdateActionBinding.editTextTextLastName.setText(birthdate.lastname);
+            activityBirthdateActionBinding.buttonBirthdateAction.setText(R.string.edit_button);
+            activityBirthdateActionBinding.datePicker.updateDate(birthdate.date.getYear(),birthdate.date.getDayOfMonth(),birthdate.date.getDayOfMonth());
+            activityBirthdateActionBinding.buttonBirthdateAction.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    BirthdateDTO birthdateDTOToEdit = createBirthdateDTOToSave();
+                    birthdateDTOToEdit.setId(birthdate.id.toString());
+                    if(checkIfInvalidAndDisplayError(birthdateDTOToEdit))
+                        return;
+
+                    birthdatesHttpService.editBirthdate(birthdateDTOToEdit).enqueue(callBackAddBirthdate());
+                }
+            });
+        } else {
+            this.configDatePicker();
+            activityBirthdateActionBinding.buttonBirthdateAction.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    BirthdateDTO birthdateDTOToAdd = createBirthdateDTOToSave();
+                    if(checkIfInvalidAndDisplayError(birthdateDTOToAdd))
+                        return;
+                    birthdatesHttpService.addBirthdate(birthdateDTOToAdd).enqueue(callBackAddBirthdate());
+                }
+            });
+        }
+
+
     }
+
+    private Boolean checkIfInvalidAndDisplayError(BirthdateDTO birthdateDTOToEdit) {
+        if(birthdateDTOToEdit.getFirstname().length() == 0) {
+           activityBirthdateActionBinding.editTextTextFirstName.setError(getString(R.string.error_field_required));
+           activityBirthdateActionBinding.editTextTextFirstName.requestFocus();
+           return true;
+        }
+        return false;
+    }
+
     private Callback<BirthdateDTO> callBackAddBirthdate() {
         return new Callback<BirthdateDTO>() {
             @Override
             public void onResponse(Call<BirthdateDTO> call, Response<BirthdateDTO> response) {
-                if (response.code() == 400) {
+                if (response.code() == 400 || response.code() ==500) {
                     Toast.makeText(context, "An error has occured. Try again", Toast.LENGTH_SHORT).show();
                 } else {
                     BirthdateDTO birthdateDTOAdded = response.body();
-                    Toast.makeText(context, "The birthdate has been added.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "The birthdate has been saved.", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(context, MainActivity.class));
                 }
 
@@ -78,7 +112,7 @@ public class BirthdateActionActivity extends AppCompatActivity {
         };
     }
 
-    private BirthdateDTO createBirthdateDTOToAdd() {
+    private BirthdateDTO createBirthdateDTOToSave() {
         LocalDate birthdateSelected = getBirthdateSelected();
         UUID userId = Util.getUserUUID(sharedPreferences);
         String firstname = activityBirthdateActionBinding.editTextTextFirstName.getText().toString();

@@ -14,6 +14,7 @@ import com.heroku.birthdayreminder.utils.Util;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class BirthdayAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -58,6 +59,8 @@ public class BirthdayAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ListItem.TYPE_BIRTHDAY:
                 Birthdate birthday = ((BirthdayItem) listItems.get(position)).birthday;
                 BirthDayViewHolder birthDayViewHolder = (BirthDayViewHolder) viewHolder;
+                birthDayViewHolder.birthdateId = birthday.id;
+                birthDayViewHolder.birthdate = new Birthdate(birthday.id,birthday.date, birthday.firstname, birthday.lastname);
                 birthDayViewHolder.mTextViewName.setText(Util.capitalize(birthday.firstname) + " " + birthday.lastname.toUpperCase());
                 birthDayViewHolder.mTextViewDate.setText(Util.printNumberPretty(birthday.date.getDayOfMonth()));
                 birthDayViewHolder.mTextViewAge.setText(Util.calculateAge(birthday.date, LocalDate.now()) + " ans");
@@ -79,10 +82,11 @@ public class BirthdayAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         private TextView mTextViewDate;
         private TextView mTextViewName;
         private TextView mTextViewAge;
+        public UUID birthdateId;
+        public Birthdate birthdate;
 
         public BirthDayViewHolder(@NonNull View itemView) {
             super(itemView);
-
             mTextViewDate = itemView.findViewById(R.id.text_view_item_date);
             mTextViewName = itemView.findViewById(R.id.text_view_item_name);
             mTextViewAge = itemView.findViewById(R.id.text_view_item_age);

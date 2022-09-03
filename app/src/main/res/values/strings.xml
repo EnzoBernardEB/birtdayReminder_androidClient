@@ -36,4 +36,6 @@
     <string name="lastname_input">Lastname</string>
     <string name="add">ADD</string>
     <string name="dateFormat">YYYY-MM-DD</string>
+    <string name="edit_birthdate">EDIT BIRTHDATE</string>
+    <string name="edit_button">EDIT</string>
 </resources>

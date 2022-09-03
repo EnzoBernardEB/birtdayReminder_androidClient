@@ -5,14 +5,16 @@ import com.heroku.birthdayreminder.utils.Util;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.UUID;
 
 
-public class Birthdate {
-
+public class Birthdate implements Serializable {
+    public UUID id;
     public LocalDate date;
     public String firstname;
     public String lastname;
@@ -31,6 +33,13 @@ public class Birthdate {
     }
 
     public Birthdate(LocalDate date, String firstname, String lastname) {
+        this.date = date;
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
+
+    public Birthdate(UUID id, LocalDate date, String firstname, String lastname) {
+        this.id = id;
         this.date = date;
         this.firstname = firstname;
         this.lastname = lastname;

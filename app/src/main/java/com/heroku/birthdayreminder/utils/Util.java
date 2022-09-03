@@ -29,6 +29,8 @@ import com.heroku.birthdayreminder.models.User;
 import com.heroku.birthdayreminder.services.BirthdatesHttpService;
 
 import org.json.JSONException;
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,6 +41,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
@@ -84,6 +87,15 @@ public class Util {
         Type listTypeUser = new TypeToken<User>() {
         }.getType();
         User result = gson.fromJson(jsonUser, listTypeUser);
+        return result;
+    }
+
+    public static ArrayList<Birthdate> getBirthdates(SharedPreferences sharedPreferences, Gson gson) {
+        String jsonBirthdates = sharedPreferences.getString(BIRTHDATES, null);
+        Type listTypeUser = new TypeToken<User>() {
+        }.getType();
+        Birthdate[] birthdates = gson.fromJson(jsonBirthdates, Birthdate[].class);
+        ArrayList<Birthdate> result = new ArrayList<>(Arrays.asList(birthdates));
         return result;
     }
 
